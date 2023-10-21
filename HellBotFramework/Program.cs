@@ -79,7 +79,7 @@ var slash = await client.UseSlashCommandsAsync(slashConf);
 Directory.CreateDirectory("Modules");
 
 // Load the modules configuration
-var modules = await ConfigManager.GetBotAsync<Modules>() ?? new();
+var modules = await ConfigManager.GetBotAsync<Modules>() ?? new Modules();
 
 // Initialize a list to keep track of modules to remove
 List<string> modulesToRemove = new();
@@ -135,7 +135,7 @@ foreach (var s in slash.Values)
         {
             if (s.LoadModule(module.Key) is false)
             {
-                // this is actually a plugin, not a module
+                // This is actually a plugin, not a module
                 modulesToMove.Add(module.Key);
             }
         }
@@ -148,5 +148,23 @@ foreach (var module in modulesToMove)
     modules.Libraries.Add(module);
 }
 
+client.Ready += Client_Ready;
+
+async Task Client_Ready(DiscordClient sender, ReadyEventArgs args)
+{
+    if (config.DefaultPresence.Length == 0) return;
+
+    await client.UpdateStatusAsync(new DiscordActivity(config.DefaultPresence, ActivityType.Playing), UserStatus.Online);
+}
+
+foreach (var module in modules.ModuleList.Keys)
+{
+    EventRegister.RegisterEventsForModule(ref client, module);
+}
+
 // Store the updated modules configuration
 await ConfigManager.StoreBotAsync(modules);
+
+await client.StartAsync();
+
+while (Core.KeepRunning) { await Task.Delay(1000); }

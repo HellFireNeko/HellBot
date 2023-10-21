@@ -18,7 +18,7 @@ internal static class ModuleLoader
             slash.RegisterCommands(assembly);
             return true;
         }
-        Log.Warning("The dll at '{Path}' is not a valid module, or contains more than 1 module descriptor. Go check the documentation for more info.", path);
+        Log.Warning("The dll at '{Path}' is not a valid module, or contains more than 1 module descriptor. Go check the documentation for more info. Treating it as a library instead for now, if this is a mistake then fix it and try again.", path);
         return false;
     }
 

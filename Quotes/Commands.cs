@@ -1,9 +1,8 @@
 ﻿using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
-using HellBotLib;
-using HellBotLib.IO;
 using HellBotLib.Checks;
+using HellBotLib.IO;
 
 namespace Quotes;
 
@@ -14,9 +13,9 @@ public class Commands : ApplicationCommandModule
     {
         Random random = new();
 
-        byte red = (byte)random.Next(256); // Random red component (0-255)
-        byte green = (byte)random.Next(256); // Random green component (0-255)
-        byte blue = (byte)random.Next(256); // Random blue component (0-255)
+        byte red = (byte)random.Next(256);
+        byte green = (byte)random.Next(256);
+        byte blue = (byte)random.Next(256);
 
         return new DiscordColor(red, green, blue);
     }
