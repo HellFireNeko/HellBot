@@ -38,9 +38,7 @@ internal static class ModuleLoader
 
         var type = moduleTypes.First();
 
-#pragma warning disable CS8604 // Possible null reference argument.
-        var instance = assembly.CreateInstance(type.FullName);
-#pragma warning restore CS8604 // Possible null reference argument.
+        var instance = Activator.CreateInstance(type);
 
         return instance as IModule;
     }
