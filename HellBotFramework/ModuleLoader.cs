@@ -13,7 +13,8 @@ internal static class ModuleLoader
 
         if (module != null)
         {
-            Log.Information("Module '{ModuleName}'\nDescription: {ModuleDescription}", module.Name, module.Description);
+            Log.Information("Module {ModuleName}", module.Name);
+            Log.Information("Description: {ModuleDescription}", module.Description);
 
             slash.RegisterCommands(assembly);
             return true;
