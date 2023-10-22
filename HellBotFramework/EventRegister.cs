@@ -94,14 +94,12 @@ internal static class EventRegister
     {
         List<IClientEvents> eventTargets = new();
 
-        Type interfaceType = typeof(IClientEvents);
-
         foreach (Type type in assembly.GetTypes())
         {
-            if (interfaceType.IsAssignableFrom(type) && !type.IsInterface && !type.IsAbstract)
+            if (typeof(IClientEvents).IsAssignableFrom(type) && !type.IsInterface && !type.IsAbstract)
             {
                 // Create an instance of the type that implements IClientEvents
-                IClientEvents? eventTarget = Activator.CreateInstance(type) as IClientEvents;
+                if (Activator.CreateInstance(type) is not IClientEvents eventTarget) continue;
                 eventTargets.Add(eventTarget);
             }
         }
