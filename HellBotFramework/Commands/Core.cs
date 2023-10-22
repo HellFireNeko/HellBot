@@ -3,8 +3,6 @@ using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
 using HellBotLib.IO;
 
-[SlashCommandGroup("Core", "Core commands, only the owner can use these!")]
-[SlashRequireOwner]
 internal class Core : ApplicationCommandModule
 {
     public static bool KeepRunning = true;
@@ -95,7 +93,6 @@ internal class Core : ApplicationCommandModule
         [SlashRequireOwner]
         public async Task Scan(InteractionContext ctx)
         {
-
             await ctx.DeferAsync(true);
 
             var modules = await ConfigManager.GetBotAsync<Modules>() ?? throw new ArgumentNullException("FATAL ERROR THE MODULES IS NOT DEFINED");

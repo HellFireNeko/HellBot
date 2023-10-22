@@ -13,7 +13,7 @@ internal static class ModuleLoader
 
         if (module != null)
         {
-            Log.Information("Module '{ModuleName}'\nDescription: {ModuleDescription}\nState: {ModuleEnabled}", module.Name, module.Description);
+            Log.Information("Module '{ModuleName}'\nDescription: {ModuleDescription}", module.Name, module.Description);
 
             slash.RegisterCommands(assembly);
             return true;
@@ -35,6 +35,12 @@ internal static class ModuleLoader
             return null;
         }
 
-        return moduleTypes.First() as IModule;
+        var type = moduleTypes.First();
+
+#pragma warning disable CS8604 // Possible null reference argument.
+        var instance = assembly.CreateInstance(type.FullName);
+#pragma warning restore CS8604 // Possible null reference argument.
+
+        return instance as IModule;
     }
 }

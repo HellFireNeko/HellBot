@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 
 namespace HellBotLib.IO;
 
@@ -26,7 +27,7 @@ public static class ConfigManager
     {
         ValidateFolders();
 
-        File.WriteAllText($"Config/{typeof(T).Name}.json", JsonConvert.SerializeObject(config));
+        File.WriteAllText($"Config/{typeof(T).Name}.json", JsonConvert.SerializeObject(config, Formatting.Indented));
     }
 
     /// <summary>
@@ -39,7 +40,9 @@ public static class ConfigManager
     {
         ValidateFolders();
 
-        File.WriteAllText($"Config/Guild/{guild}/{typeof(T).Name}.json", JsonConvert.SerializeObject(config));
+        Directory.CreateDirectory($"Config/Guild/{guild}");
+
+        File.WriteAllText($"Config/Guild/{guild}/{typeof(T).Name}.json", JsonConvert.SerializeObject(config, Formatting.Indented));
     }
 
     /// <summary>
@@ -52,7 +55,9 @@ public static class ConfigManager
     {
         ValidateFolders();
 
-        File.WriteAllText($"Config/User/{user}/{typeof(T).Name}.json", JsonConvert.SerializeObject(config));
+        Directory.CreateDirectory($"Config/User/{user}");
+
+        File.WriteAllText($"Config/User/{user}/{typeof(T).Name}.json", JsonConvert.SerializeObject(config, Formatting.Indented));
     }
 
     /// <summary>
@@ -149,7 +154,7 @@ public static class ConfigManager
     {
         await ValidateFoldersAsync();
 
-        await File.WriteAllTextAsync($"Config/{typeof(T).Name}.json", JsonConvert.SerializeObject(config));
+        await File.WriteAllTextAsync($"Config/{typeof(T).Name}.json", JsonConvert.SerializeObject(config, Formatting.Indented));
     }
 
     /// <summary>
@@ -162,7 +167,9 @@ public static class ConfigManager
     {
         await ValidateFoldersAsync();
 
-        await File.WriteAllTextAsync($"Config/Guild/{guild}/{typeof(T).Name}.json", JsonConvert.SerializeObject(config));
+        Directory.CreateDirectory($"Config/Guild/{guild}");
+
+        await File.WriteAllTextAsync($"Config/Guild/{guild}/{typeof(T).Name}.json", JsonConvert.SerializeObject(config, Formatting.Indented));
     }
 
     /// <summary>
@@ -175,7 +182,9 @@ public static class ConfigManager
     {
         await ValidateFoldersAsync();
 
-        await File.WriteAllTextAsync($"Config/User/{user}/{typeof(T).Name}.json", JsonConvert.SerializeObject(config));
+        Directory.CreateDirectory($"Config/User/{user}");
+
+        await File.WriteAllTextAsync($"Config/User/{user}/{typeof(T).Name}.json", JsonConvert.SerializeObject(config, Formatting.Indented));
     }
 
     /// <summary>

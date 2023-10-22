@@ -6,7 +6,6 @@ using HellBotLib.IO;
 
 namespace Quotes;
 
-[SlashCommandGroup("Quotes", "A group of commands for the Quotes module")]
 public class Commands : ApplicationCommandModule
 {
     static DiscordColor GetRandomColor()
@@ -20,20 +19,25 @@ public class Commands : ApplicationCommandModule
         return new DiscordColor(red, green, blue);
     }
 
-    [SlashCommand("Set", "Sets the channel to be the quote channel")]
-    [SlashRequireGuildModerator]
-    public async Task Set(InteractionContext ctx, [Option("Nsfw", "Does it allow nsfw?", true)] bool allowNsfw)
+    [SlashCommandGroup("Quotes", "A group of commands for the Quotes module")]
+    public class QuoteCommands : ApplicationCommandModule
     {
-        await ctx.DeferAsync(true);
+        [SlashCommand("Set", "Sets the channel to be the quote channel")]
+        [SlashRequireGuildModerator]
+        public async Task Set(InteractionContext ctx, [Option("Nsfw", "Does it allow nsfw?", true)] bool allowNsfw)
+        {
+            await ctx.DeferAsync(true);
 
-        var config = QuoteGuildConfig.Default;
+            var config = QuoteGuildConfig.Default;
 
-        config.ChannelID = ctx.Channel.Id;
-        config.AllowNSFW = allowNsfw;
+            config.ChannelID = ctx.Channel.Id;
+            config.AllowNSFW = allowNsfw;
 
-        await ConfigManager.StoreGuildAsync(ctx.Guild.Id, config);
+            await ConfigManager.StoreGuildAsync(ctx.Guild.Id, config);
 
-        await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("This is now the quote channel!"));
+            await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("This is now the quote channel!"));
+        }
+
     }
 
     [ContextMenu(ApplicationCommandType.MessageContextMenu, "Quote")]
@@ -82,5 +86,7 @@ public class Commands : ApplicationCommandModule
         );
 
         await channel.SendMessageAsync(msgBuilder);
+
+        await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("Quoted that boss!"));
     }
 }

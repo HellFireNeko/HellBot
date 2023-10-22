@@ -44,12 +44,26 @@ var services = new ServiceCollection()
     .AddSingleton<Random>()
     .BuildServiceProvider();
 
+var intentBuilder = DiscordIntents.AllUnprivileged;
+
+if (config.PresenceIntent)
+    intentBuilder |= DiscordIntents.GuildPresences;
+
+if (config.ServerMembersIntent)
+    intentBuilder |= DiscordIntents.GuildMembers;
+
+if (config.MessageContentIntent)
+    intentBuilder |= DiscordIntents.MessageContents;
+
+if (config.PresenceIntent && config.MessageContentIntent && config.ServerMembersIntent)
+    intentBuilder = DiscordIntents.All;
+
 // Configure the Discord client
 var conf = new DiscordConfiguration()
 {
     LoggerFactory = loggerFactory,
     Token = config.Token,
-    Intents = DiscordIntents.All,
+    Intents = intentBuilder,
     LogUnknownEvents = false
 };
 
