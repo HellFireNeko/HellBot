@@ -32,21 +32,16 @@ public sealed class SlashRequireGuildAdminAttribute : SlashCheckBaseAttribute
         }
 
         // Check if the user has a specified admin role defined in the guild's configuration
-        GuildConfig guildConfig = await ConfigManager.GetGuildAsync<GuildConfig>(ctx.Guild.Id);
+        GuildConfig? guildConfig = await ConfigManager.GetGuildAsync<GuildConfig>(ctx.Guild.Id);
 
-        if (guildConfig.AdminRole == 0)
+        if (guildConfig == null || guildConfig.ModeratorRole == 0)
         {
             return false;
         }
 
         var role = ctx.Guild.GetRole(guildConfig.AdminRole);
 
-        if (role == null || !ctx.Member.Roles.Contains(role))
-        {
-            return false;
-        }
-
-        return true;
+        return role != null && ctx.Member.Roles.Contains(role);
     }
 }
 
@@ -78,20 +73,15 @@ public sealed class ContextMenuRequireGuildAdminAttribute : ContextMenuCheckBase
         }
 
         // Check if the user has a specified admin role defined in the guild's configuration
-        GuildConfig guildConfig = await ConfigManager.GetGuildAsync<GuildConfig>(ctx.Guild.Id);
+        GuildConfig? guildConfig = await ConfigManager.GetGuildAsync<GuildConfig>(ctx.Guild.Id);
 
-        if (guildConfig.AdminRole == 0)
+        if (guildConfig == null || guildConfig.ModeratorRole == 0)
         {
             return false;
         }
 
         var role = ctx.Guild.GetRole(guildConfig.AdminRole);
 
-        if (role == null || !ctx.Member.Roles.Contains(role))
-        {
-            return false;
-        }
-
-        return true;
+        return role != null && ctx.Member.Roles.Contains(role);
     }
 }

@@ -31,22 +31,23 @@ public sealed class SlashRequireGuildModeratorAttribute : SlashCheckBaseAttribut
             return true;
         }
 
-        // Check if the user has a specified moderator role defined in the guild's configuration
-        GuildConfig guildConfig = await ConfigManager.GetGuildAsync<GuildConfig>(ctx.Guild.Id);
+        SlashRequireGuildAdminAttribute adminCheck = new();
+        if (await adminCheck.ExecuteChecksAsync(ctx))
+        {
+            return true;
+        }
 
-        if (guildConfig.ModeratorRole == 0)
+        // Check if the user has a specified moderator role defined in the guild's configuration
+        GuildConfig? guildConfig = await ConfigManager.GetGuildAsync<GuildConfig>(ctx.Guild.Id);
+
+        if (guildConfig == null || guildConfig.ModeratorRole == 0)
         {
             return false;
         }
 
         var role = ctx.Guild.GetRole(guildConfig.ModeratorRole);
 
-        if (role == null || !ctx.Member.Roles.Contains(role))
-        {
-            return false;
-        }
-
-        return true;
+        return role != null && ctx.Member.Roles.Contains(role);
     }
 }
 
@@ -77,21 +78,22 @@ public sealed class ContextMenuRequireGuildModeratorAttribute : ContextMenuCheck
             return true;
         }
 
-        // Check if the user has a specified moderator role defined in the guild's configuration
-        GuildConfig guildConfig = await ConfigManager.GetGuildAsync<GuildConfig>(ctx.Guild.Id);
+        ContextMenuRequireGuildAdminAttribute adminCheck = new();
+        if (await adminCheck.ExecuteChecksAsync(ctx))
+        {
+            return true;
+        }
 
-        if (guildConfig.ModeratorRole == 0)
+        // Check if the user has a specified moderator role defined in the guild's configuration
+        GuildConfig? guildConfig = await ConfigManager.GetGuildAsync<GuildConfig>(ctx.Guild.Id);
+
+        if (guildConfig == null || guildConfig.ModeratorRole == 0)
         {
             return false;
         }
 
         var role = ctx.Guild.GetRole(guildConfig.ModeratorRole);
 
-        if (role == null || !ctx.Member.Roles.Contains(role))
-        {
-            return false;
-        }
-
-        return true;
+        return role != null && ctx.Member.Roles.Contains(role);
     }
 }
