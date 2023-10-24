@@ -8,127 +8,24 @@ namespace HellBotLib.IO;
 /// </summary>
 public static class ConfigManager
 {
-    /// <summary>
-    /// Validates the required directory structure for configuration storage.
-    /// </summary>
-    private static void ValidateFolders()
+    private static readonly string LockFileExtension = ".lock";
+
+    private static async Task LockFileAsync(string filePath)
     {
-        Directory.CreateDirectory("Config");
-        Directory.CreateDirectory("Config/Guild");
-        Directory.CreateDirectory("Config/User");
-    }
-
-    /// <summary>
-    /// Stores a bot configuration.
-    /// </summary>
-    /// <typeparam name="T">The type of bot configuration to store.</typeparam>
-    /// <param name="config">The bot configuration to store.</param>
-    public static void StoreBot<T>(T config) where T : class, IBotConfig
-    {
-        ValidateFolders();
-
-        File.WriteAllText($"Config/{typeof(T).Name}.json", JsonConvert.SerializeObject(config, Formatting.Indented));
-    }
-
-    /// <summary>
-    /// Stores a guild-specific configuration.
-    /// </summary>
-    /// <typeparam name="T">The type of guild configuration to store.</typeparam>
-    /// <param name="guild">The ID of the guild associated with the configuration.</param>
-    /// <param name="config">The guild configuration to store.</param>
-    public static void StoreGuild<T>(ulong guild, T config) where T : class, IGuildConfig
-    {
-        ValidateFolders();
-
-        Directory.CreateDirectory($"Config/Guild/{guild}");
-
-        File.WriteAllText($"Config/Guild/{guild}/{typeof(T).Name}.json", JsonConvert.SerializeObject(config, Formatting.Indented));
-    }
-
-    /// <summary>
-    /// Stores a user-specific configuration.
-    /// </summary>
-    /// <typeparam name="T">The type of user configuration to store.</typeparam>
-    /// <param name="user">The ID of the user associated with the configuration.</param>
-    /// <param name="config">The user configuration to store.</param>
-    public static void StoreUser<T>(ulong user, T config) where T : class, IUserConfig
-    {
-        ValidateFolders();
-
-        Directory.CreateDirectory($"Config/User/{user}");
-
-        File.WriteAllText($"Config/User/{user}/{typeof(T).Name}.json", JsonConvert.SerializeObject(config, Formatting.Indented));
-    }
-
-    /// <summary>
-    /// Retrieves a bot configuration.
-    /// </summary>
-    /// <typeparam name="T">The type of bot configuration to retrieve.</typeparam>
-    /// <returns>The bot configuration or a default configuration if not found.</returns>
-    public static T? GetBot<T>() where T : class, IBotConfig
-    {
-        ValidateFolders();
-
-        string filePath = $"Config/{typeof(T).Name}.json";
-
-        if (File.Exists(filePath))
+        var lockFilePath = filePath + LockFileExtension;
+        while (File.Exists(lockFilePath))
         {
-            string json = File.ReadAllText(filePath);
-            return JsonConvert.DeserializeObject<T>(json);
+            await Task.Delay(100); // Wait and check again if the lock file is still present
         }
-        else
-        {
-            // Handle the case where the configuration file doesn't exist, e.g., create a default configuration.
-            return null; // You may want to return a default config or null as needed.
-        }
+        File.Create(lockFilePath).Dispose();
     }
 
-    /// <summary>
-    /// Retrieves a guild-specific configuration.
-    /// </summary>
-    /// <typeparam name="T">The type of guild configuration to retrieve.</typeparam>
-    /// <param name="guild">The ID of the guild associated with the configuration.</param>
-    /// <returns>The guild configuration or a default configuration if not found.</returns>
-    public static T? GetGuild<T>(ulong guild) where T : class, IGuildConfig
+    private static void UnlockFile(string filePath)
     {
-        ValidateFolders();
-
-        string filePath = $"Config/Guild/{guild}/{typeof(T).Name}.json";
-
-        if (File.Exists(filePath))
+        var lockFilePath = filePath + LockFileExtension;
+        if (File.Exists(lockFilePath))
         {
-            string json = File.ReadAllText(filePath);
-            return JsonConvert.DeserializeObject<T>(json);
-        }
-        else
-        {
-            // Handle the case where the configuration file doesn't exist, e.g., create a default configuration.
-            return null; // You may want to return a default config or null as needed.
-        }
-    }
-
-
-    /// <summary>
-    /// Retrieves a user-specific configuration.
-    /// </summary>
-    /// <typeparam name="T">The type of user configuration to retrieve.</typeparam>
-    /// <param name="user">The ID of the user associated with the configuration.</param>
-    /// <returns>The user configuration or a default configuration if not found.</returns>
-    public static T? GetUser<T>(ulong user) where T : class, IUserConfig
-    {
-        ValidateFolders();
-
-        string filePath = $"Config/User/{user}/{typeof(T).Name}.json";
-
-        if (File.Exists(filePath))
-        {
-            string json = File.ReadAllText(filePath);
-            return JsonConvert.DeserializeObject<T>(json);
-        }
-        else
-        {
-            // Handle the case where the configuration file doesn't exist, e.g., create a default configuration.
-            return null; // You may want to return a default config or null as needed.
+            File.Delete(lockFilePath);
         }
     }
 
@@ -154,7 +51,11 @@ public static class ConfigManager
     {
         await ValidateFoldersAsync();
 
+        await LockFileAsync($"Config/{typeof(T).Name}.json");
+
         await File.WriteAllTextAsync($"Config/{typeof(T).Name}.json", JsonConvert.SerializeObject(config, Formatting.Indented));
+
+        UnlockFile($"Config/{typeof(T).Name}.json");
     }
 
     /// <summary>
@@ -169,7 +70,11 @@ public static class ConfigManager
 
         Directory.CreateDirectory($"Config/Guild/{guild}");
 
+        await LockFileAsync($"Config/Guild/{guild}/{typeof(T).Name}.json");
+
         await File.WriteAllTextAsync($"Config/Guild/{guild}/{typeof(T).Name}.json", JsonConvert.SerializeObject(config, Formatting.Indented));
+
+        UnlockFile($"Config/Guild/{guild}/{typeof(T).Name}.json");
     }
 
     /// <summary>
@@ -184,7 +89,11 @@ public static class ConfigManager
 
         Directory.CreateDirectory($"Config/User/{user}");
 
+        await LockFileAsync($"Config/User/{user}/{typeof(T).Name}.json");
+
         await File.WriteAllTextAsync($"Config/User/{user}/{typeof(T).Name}.json", JsonConvert.SerializeObject(config, Formatting.Indented));
+
+        UnlockFile($"Config/User/{user}/{typeof(T).Name}.json");
     }
 
     /// <summary>
@@ -198,13 +107,17 @@ public static class ConfigManager
 
         string filePath = $"Config/{typeof(T).Name}.json";
 
+        await LockFileAsync(filePath);
+
         if (File.Exists(filePath))
         {
             string json = await File.ReadAllTextAsync(filePath);
+            UnlockFile(filePath);
             return JsonConvert.DeserializeObject<T>(json);
         }
         else
         {
+            UnlockFile(filePath);
             return null;
         }
     }
@@ -221,13 +134,17 @@ public static class ConfigManager
 
         string filePath = $"Config/Guild/{guild}/{typeof(T).Name}.json";
 
+        await LockFileAsync(filePath);
+
         if (File.Exists(filePath))
         {
             string json = await File.ReadAllTextAsync(filePath);
+            UnlockFile(filePath);
             return JsonConvert.DeserializeObject<T>(json);
         }
         else
         {
+            UnlockFile(filePath);
             return null;
         }
     }
@@ -244,13 +161,17 @@ public static class ConfigManager
 
         string filePath = $"Config/User/{user}/{typeof(T).Name}.json";
 
+        await LockFileAsync(filePath);
+
         if (File.Exists(filePath))
         {
             string json = await File.ReadAllTextAsync(filePath);
+            UnlockFile(filePath);
             return JsonConvert.DeserializeObject<T>(json);
         }
         else
         {
+            UnlockFile(filePath);
             return null;
         }
     }
