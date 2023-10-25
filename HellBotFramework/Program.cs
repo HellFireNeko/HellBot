@@ -5,11 +5,13 @@ using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.SlashCommands;
+using DSharpPlus.ModalCommands;
 using HellBotLib;
 using HellBotLib.IO;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using DSharpPlus.ModalCommands.Extensions;
 
 // Configure the Serilog logger for logging to the console and a log file
 Log.Logger = new LoggerConfiguration()
@@ -68,7 +70,7 @@ var conf = new DiscordConfiguration()
 };
 
 // Create a new sharded Discord client
-var client = new DiscordShardedClient(conf);
+var client = new DiscordClient(conf);
 
 // Configure the interactivity for the client
 var interConf = new InteractivityConfiguration()
@@ -78,7 +80,7 @@ var interConf = new InteractivityConfiguration()
     ButtonBehavior = ButtonPaginationBehavior.DeleteButtons,
 };
 
-await client.UseInteractivityAsync(interConf);
+client.UseInteractivity(interConf);
 
 // Configure the SlashCommands for the client
 var slashConf = new SlashCommandsConfiguration()
@@ -87,7 +89,14 @@ var slashConf = new SlashCommandsConfiguration()
 };
 
 // Enable SlashCommands on the client
-var slash = await client.UseSlashCommandsAsync(slashConf);
+var slash = client.UseSlashCommands(slashConf);
+
+var modalConf = new ModalCommandsConfiguration()
+{
+    Services = services
+};
+
+var modal = client.UseModalCommands(modalConf);
 
 // Create a 'Modules' directory if it doesn't exist
 Directory.CreateDirectory("Modules");
@@ -139,19 +148,17 @@ foreach (string modulePath in modulePaths)
 List<string> modulesToMove = new();
 
 // Register and load commands for each SlashCommand module
-foreach (var s in slash.Values)
-{
-    s.RegisterCommands<Core>();
+slash.RegisterCommands<Core>();
 
-    foreach (var module in modules.ModuleList)
+
+foreach (var module in modules.ModuleList)
+{
+    if (module.Value)
     {
-        if (module.Value)
+        if (slash.LoadModule(module.Key) is false)
         {
-            if (s.LoadModule(module.Key) is false)
-            {
-                // This is actually a plugin, not a module
-                modulesToMove.Add(module.Key);
-            }
+            // This is actually a plugin, not a module
+            modulesToMove.Add(module.Key);
         }
     }
 }
@@ -160,6 +167,17 @@ foreach (var module in modulesToMove)
 {
     modules.ModuleList.Remove(module);
     modules.Libraries.Add(module);
+}
+
+foreach (var module in modules.ModuleList)
+{
+    if (module.Value)
+    {
+        if (modal.LoadModule(module.Key) is false)
+        {
+            // Idfk just ignore i guess???
+        }
+    }
 }
 
 client.Ready += Client_Ready;
@@ -179,6 +197,6 @@ foreach (var module in modules.ModuleList.Keys)
 // Store the updated modules configuration
 await ConfigManager.StoreBotAsync(modules);
 
-await client.StartAsync();
+await client.ConnectAsync();
 
 while (Core.KeepRunning) { await Task.Delay(1000); }
