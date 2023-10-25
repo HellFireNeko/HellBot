@@ -1,17 +1,38 @@
 ﻿using DSharpPlus.Entities;
-using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.SlashCommands;
 using HellBotLib.Checks;
 using HellBotLib.IO;
 
 namespace Warning;
 
+/// <summary>
+/// TODO:
+/// <list type="bullet">
+///     <item>Setup all the configure commands</item>
+///     <item>Setup all the methods of warning people</item>
+///     <item>Test all the commands.</item>
+/// </list>
+/// </summary>
 [SlashCommandGroup("Warning", "Handle all the warnings on the server")]
 public class WarningCommands : ApplicationCommandModule
 {
+    [ContextMenu(DSharpPlus.ApplicationCommandType.UserContextMenu, "Warn User")]
+    [ContextMenuRequireGuildModerator]
+    public async Task WarnUserMenu(ContextMenuContext ctx)
+    {
+        await ctx.DeferAsync();
+    }
+
+    [ContextMenu(DSharpPlus.ApplicationCommandType.MessageContextMenu, "Warn Message")]
+    [ContextMenuRequireGuildModerator]
+    public async Task WarnMessageMenu(ContextMenuContext ctx)
+    {
+        await ctx.DeferAsync();
+    }
+
     [SlashCommand("Warn", "Warns the user")]
     [SlashRequireGuildModerator]
-    public async Task WarnUserCommand(InteractionContext ctx, [Option("User", "The user to warn")] DiscordUser user, [Option("Reason", "The reason for the warning!")] string reason)
+    public async Task WarnUserCommand(InteractionContext ctx, [Option("User", "The user to warn")] DiscordMember member, [Option("Reason", "The reason for the warning!")] string reason)
     {
         await ctx.DeferAsync();
 
@@ -19,24 +40,27 @@ public class WarningCommands : ApplicationCommandModule
 
         if (config == null) config = new WarningGuildConfig();
 
-        config.GuildUsers.TryGetValue(user.Id, out WarningGuildConfig.UserWarnings? warnings);
+        config.GuildUsers.TryGetValue(member.Id, out WarningGuildConfig.UserWarnings? warnings);
 
         if (warnings == null)
         {
             warnings = new WarningGuildConfig.UserWarnings();
-            config.GuildUsers.Add(user.Id, warnings);
+            config.GuildUsers.Add(member.Id, warnings);
         }
 
         warnings.Warnings.Add(warnings.Warnings.Count, reason);
 
-        await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent($"Warned the user! They are on {warnings.Warnings.Count}/{config.MaxWarnings} warnings!"));
+        await ctx.EditResponseAsync(new DiscordWebhookBuilder()
+            .WithContent($"Warned the user! They are on {warnings.Warnings.Count}/{config.MaxWarnings} warnings!"));
+
+        await member.SendMessageAsync($"You have been warned by {ctx.Member.Username}, their reason is:\n`{reason}`");
 
         if (warnings.Warnings.Count >= config.MaxWarnings && config.BanOnLimit)
         {
-            var member = await ctx.Guild.GetMemberAsync(user.Id);
             await ctx.Guild.BanMemberAsync(member, 0, "The user exceeded the warning limit!");
 
-            await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder().WithContent("They exceeded the limit and have now been banned!");
+            await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder()
+                .WithContent("They exceeded the limit and have now been banned!"));
         }
 
         await ConfigManager.StoreGuildAsync(ctx.Guild.Id, config);
