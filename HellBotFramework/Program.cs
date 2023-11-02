@@ -89,11 +89,6 @@ var slashConf = new SlashCommandsConfiguration()
 // Enable SlashCommands on the client
 var slash = await client.UseSlashCommandsAsync(slashConf);
 
-var modalConf = new ModalCommandsConfiguration()
-{
-    Services = services
-};
-
 // Create a 'Modules' directory if it doesn't exist
 Directory.CreateDirectory("Modules");
 
