@@ -7,7 +7,7 @@ internal static class EventRegister
 {
     private static readonly List<IClientEvents> EventTargets = new();
 
-    public static void RegisterEventsForModule(ref DiscordClient client, string moduleName)
+    public static void RegisterEventsForModule(ref DiscordShardedClient client, string moduleName)
     {
         var assembly = Assembly.LoadFrom(moduleName);
         Log.Information("Linking events for {ModuleName}", Path.GetFileName(moduleName));
@@ -21,7 +21,7 @@ internal static class EventRegister
         }
     }
 
-    private static void LinkEvents(ref DiscordClient client, IClientEvents events)
+    private static void LinkEvents(ref DiscordShardedClient client, IClientEvents events)
     {
         client.ChannelCreated += events.ChannelCreated;
         client.ChannelDeleted += events.ChannelDeleted;
