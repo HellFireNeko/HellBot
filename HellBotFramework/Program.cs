@@ -5,7 +5,6 @@ using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.SlashCommands;
-using HellBotLib;
 using HellBotLib.IO;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -143,7 +142,6 @@ foreach (var s in slash.Values)
     // Register and load commands for each SlashCommand module
     s.RegisterCommands<Core>();
 
-
     foreach (var module in modules.ModuleList)
     {
         if (module.Value)
@@ -183,3 +181,10 @@ await ConfigManager.StoreBotAsync(modules);
 await client.StartAsync();
 
 while (Core.KeepRunning) { await Task.Delay(1000); }
+
+if (Core.FixAll)
+{
+    await slash[0].RefreshCommands();
+
+    await client.StopAsync();
+}

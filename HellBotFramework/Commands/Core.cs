@@ -6,6 +6,7 @@ using HellBotLib.IO;
 internal class Core : ApplicationCommandModule
 {
     public static bool KeepRunning = true;
+    public static bool FixAll = false;
 
     [SlashCommand("shutdown", "Stops the bot from taking over the world")]
     [SlashRequireOwner]
@@ -16,6 +17,16 @@ internal class Core : ApplicationCommandModule
         KeepRunning = false;
 
         await ctx.Client.DisconnectAsync();
+    }
+
+    [SlashCommand("fix", "Refreshes everything")]
+    [SlashRequireOwner]
+    public async Task Fix(InteractionContext ctx)
+    {
+        await ctx.CreateResponseAsync("Fixing, and shutting down", true);
+
+        FixAll = true;
+        KeepRunning = false;
     }
 
     [SlashCommand("Ping", "Gets the delay of the bot!")]
