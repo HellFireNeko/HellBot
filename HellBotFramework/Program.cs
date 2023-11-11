@@ -5,6 +5,7 @@ using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.SlashCommands;
+using HellBotFramework.Commands;
 using HellBotLib.IO;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -141,6 +142,7 @@ foreach (var s in slash.Values)
 {
     // Register and load commands for each SlashCommand module
     s.RegisterCommands<Core>();
+    s.RegisterCommands<GlobalGuildCommands>();
 
     foreach (var module in modules.ModuleList)
     {
